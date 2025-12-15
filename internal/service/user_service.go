@@ -12,7 +12,10 @@ import (
 type UserService interface {
 	Create(ctx context.Context, req models.CreateUserRequest) (db.User, error)
 	Get(ctx context.Context, id int32) (models.UserResponse, error)
-	List(ctx context.Context) ([]models.UserResponse, error)
+
+	// ✅ Pagination bonus
+	ListPaginated(ctx context.Context, page, limit int) ([]models.UserResponse, error)
+
 	Update(ctx context.Context, id int32, req models.CreateUserRequest) (db.User, error)
 	Delete(ctx context.Context, id int32) error
 }
@@ -47,8 +50,26 @@ func (s *userService) Get(ctx context.Context, id int32) (models.UserResponse, e
 	}, nil
 }
 
-func (s *userService) List(ctx context.Context) ([]models.UserResponse, error) {
-	users, err := s.repo.List(ctx)
+// ✅ Pagination implementation
+func (s *userService) ListPaginated(
+	ctx context.Context,
+	page, limit int,
+) ([]models.UserResponse, error) {
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+
+	users, err := s.repo.ListPaginated(
+		ctx,
+		int32(limit),
+		int32(offset),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +83,7 @@ func (s *userService) List(ctx context.Context) ([]models.UserResponse, error) {
 			Age:  models.CalculateAge(u.Dob),
 		})
 	}
+
 	return res, nil
 }
 

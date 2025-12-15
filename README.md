@@ -140,6 +140,7 @@ Server starts at `http://localhost:8080`.
 ```json
 [{ "id": 1, "name": "Alice", "dob": "1990-05-10", "age": 35 }]
 ```
+GET /users?page=1&limit=10
 
 ---
 

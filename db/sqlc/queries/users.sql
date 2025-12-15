@@ -19,3 +19,8 @@ RETURNING id, name, dob;
 
 -- name: DeleteUser :exec
 DELETE FROM users WHERE id = $1;
+-- name: ListUsersPaginated :many
+SELECT id, name, dob
+FROM users
+ORDER BY id
+LIMIT $1 OFFSET $2;

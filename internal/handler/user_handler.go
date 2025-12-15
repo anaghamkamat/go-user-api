@@ -28,7 +28,7 @@ func (h *UserHandler) Create(c *fiber.Ctx) error {
 	var req models.CreateUserRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		logger.Log.Error("failed to parse request body", zap.Error(err))
+		logger.Log.Error("failed to parse request", zap.Error(err))
 		return c.Status(400).JSON(err.Error())
 	}
 
@@ -43,11 +43,7 @@ func (h *UserHandler) Create(c *fiber.Ctx) error {
 		return c.Status(500).JSON(err.Error())
 	}
 
-	logger.Log.Info("user created",
-		zap.Int32("id", user.ID),
-		zap.String("name", user.Name),
-	)
-
+	logger.Log.Info("user created", zap.Int32("id", user.ID))
 	return c.Status(201).JSON(user)
 }
 
@@ -56,22 +52,22 @@ func (h *UserHandler) Get(c *fiber.Ctx) error {
 
 	user, err := h.svc.Get(c.Context(), int32(id))
 	if err != nil {
-		logger.Log.Warn("user not found", zap.Int("id", id))
 		return c.Status(404).JSON("user not found")
 	}
 
-	logger.Log.Info("user fetched", zap.Int("id", id))
 	return c.JSON(user)
 }
 
 func (h *UserHandler) List(c *fiber.Ctx) error {
-	users, err := h.svc.List(c.Context())
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+
+	users, err := h.svc.ListPaginated(c.Context(), page, limit)
 	if err != nil {
 		logger.Log.Error("failed to list users", zap.Error(err))
 		return c.Status(500).JSON(err.Error())
 	}
 
-	logger.Log.Info("users listed", zap.Int("count", len(users)))
 	return c.JSON(users)
 }
 
@@ -80,23 +76,13 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 	var req models.CreateUserRequest
 
 	if err := c.BodyParser(&req); err != nil {
-		logger.Log.Error("failed to parse update request", zap.Error(err))
 		return c.Status(400).JSON(err.Error())
 	}
 
 	user, err := h.svc.Update(c.Context(), int32(id), req)
 	if err != nil {
-		logger.Log.Error("failed to update user",
-			zap.Int("id", id),
-			zap.Error(err),
-		)
 		return c.Status(500).JSON(err.Error())
 	}
-
-	logger.Log.Info("user updated",
-		zap.Int("id", id),
-		zap.String("name", user.Name),
-	)
 
 	return c.JSON(user)
 }
@@ -105,13 +91,8 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
 
 	if err := h.svc.Delete(c.Context(), int32(id)); err != nil {
-		logger.Log.Error("failed to delete user",
-			zap.Int("id", id),
-			zap.Error(err),
-		)
 		return c.Status(500).JSON(err.Error())
 	}
 
-	logger.Log.Info("user deleted", zap.Int("id", id))
 	return c.SendStatus(204)
 }
