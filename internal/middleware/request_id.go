@@ -7,8 +7,9 @@ import (
 
 func RequestID() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		reqID := uuid.New().String()
-		c.Set("X-Request-ID", reqID)
+		requestID := uuid.New().String()
+		c.Set("X-Request-ID", requestID)
+		c.Locals("requestId", requestID)
 		return c.Next()
 	}
 }

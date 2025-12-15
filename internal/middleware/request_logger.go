@@ -12,16 +12,17 @@ import (
 func RequestLogger() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now()
-
 		err := c.Next()
-
 		duration := time.Since(start)
 
-		logger.Log.Info("http_request",
+		reqID, _ := c.Locals("requestId").(string)
+
+		logger.Log.Info("request completed",
 			zap.String("method", c.Method()),
 			zap.String("path", c.Path()),
-			zap.Int("status", c.Response().StatusCode()),
+			zap.String("requestId", reqID),
 			zap.Duration("duration", duration),
+			zap.Int("status", c.Response().StatusCode()),
 		)
 
 		return err
